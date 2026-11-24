@@ -43,5 +43,12 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: public
-      - if: steps.build.outputs.changed == 'true'
+      # GitHub側で、アップロード直後のファイルがまだ見えずに失敗することがある。そのときは少し待って1回だけやり直す
+      - id: deploy
+        if: steps.build.outputs.changed == 'true'
+        continue-on-error: true
+        uses: actions/deploy-pages@v4
+      - if: steps.build.outputs.changed == 'true' && steps.deploy.outcome == 'failure'
+        run: sleep 20
+      - if: steps.build.outputs.changed == 'true' && steps.deploy.outcome == 'failure'
         uses: actions/deploy-pages@v4
